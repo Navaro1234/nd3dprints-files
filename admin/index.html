@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin | ND3D Prints</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#667085;--line:#dce1e8;--blue:#155eef;--bg:#f5f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:980px;margin:6vh auto;padding:20px}.panel{background:white;border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 10px 30px #1720330b}
+.narrow{max-width:430px;margin:8vh auto}.brand{font-size:13px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+h1{margin:.5rem 0 1rem;font-size:30px}p{color:var(--muted);line-height:1.55}
+label{display:block;font-weight:650;margin:16px 0 7px}input,select{width:100%;padding:12px 13px;border:1px solid #cbd3df;border-radius:10px;font:inherit;background:white}
+button,.button{border:0;border-radius:10px;padding:11px 15px;background:var(--blue);color:white;font:inherit;font-weight:650;cursor:pointer;text-decoration:none;display:inline-block}
+button.secondary{background:#eef2f8;color:var(--ink)}button.danger{background:#b42318}.muted{color:var(--muted);font-size:13px}
+.notice{padding:12px 14px;border-radius:10px;background:#fff7e6;color:#7a4b00;margin:16px 0}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}.tabs button{background:#eef2f8;color:var(--ink)}.tabs button.active{background:var(--blue);color:white}
+table{width:100%;border-collapse:collapse;margin-top:12px}th,td{text-align:left;border-bottom:1px solid var(--line);padding:12px 8px;overflow-wrap:anywhere}th{color:var(--muted);font-size:13px}
+.hidden{display:none!important}.formrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}.status{margin-top:12px;min-height:24px;color:var(--muted)}
+@media(max-width:600px){main{padding:12px}.panel{padding:19px}.formrow{grid-template-columns:1fr}table{font-size:14px}td,th{padding:9px 5px}}
+</style></head>
+<body>
+<main>
+<section id="login" class="panel narrow">
+<div class="brand">ND3D Prints · Beheer</div><h1>Admin login</h1>
+<p>Meld je aan om bestanden en korte downloadlinks te beheren.</p>
+<form id="loginForm"><label for="password">Beheerderswachtwoord</label><input id="password" type="password" autocomplete="current-password" required placeholder="Wachtwoord">
+<p><button type="submit" style="width:100%">Inloggen</button></p></form>
+<div id="loginStatus" class="status" role="status"></div>
+<p class="muted">Beveiligde toegang vereist een geconfigureerde backend. Deze pagina slaat je wachtwoord niet op.</p>
+</section>
+<section id="dashboard" class="panel hidden">
+<div class="toolbar"><div><div class="brand">ND3D Prints · Beheer</div><h1>Bestandsbeheer</h1></div><button id="logout" class="secondary">Uitloggen</button></div>
+<div class="notice">Backend nog niet geconfigureerd. De beheeracties blijven uitgeschakeld tot de beveiligde API en omgevingsvariabelen zijn ingesteld.</div>
+<div class="tabs"><button class="active" data-tab="files">Bestanden</button><button data-tab="links">Snelle koppelingen</button></div>
+<section id="filesTab"><h2>Bestanden</h2><p>Bekijk, upload, hernoem of verwijder bestanden in de map downloads.</p>
+<form id="uploadForm"><label for="upload">Bestand uploaden</label><input id="upload" type="file" disabled><p><button disabled>Uploaden</button></p></form>
+<table><thead><tr><th>Bestand</th><th>Acties</th></tr></thead><tbody id="fileRows"><tr><td colspan="2">Bestandslijst verschijnt zodra de API is ingesteld.</td></tr></tbody></table></section>
+<section id="linksTab" class="hidden"><h2>Snelle koppelingen</h2><p>Maak bijvoorbeeld <code>files.nd3dprints.be/prism</code> die doorstuurt naar een download.</p>
+<form id="linkForm"><div class="formrow"><div><label for="slug">Korte naam</label><input id="slug" placeholder="prism" disabled></div><div><label for="target">Bestand</label><select id="target" disabled><option>Selecteer een bestand</option></select></div></div><p><button disabled>Koppeling maken</button></p></form>
+<table><thead><tr><th>Korte URL</th><th>Bestemming</th><th>Acties</th></tr></thead><tbody id="linkRows"><tr><td colspan="3">Koppelingen verschijnen zodra de API is ingesteld.</td></tr></tbody></table></section>
+<div id="appStatus" class="status" role="status"></div>
+</section>
+</main>
+<script>
+const API = window.ND3D_ADMIN_API || "";
+const login = document.querySelector("#login"), dashboard = document.querySelector("#dashboard");
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelector("#filesTab").classList.toggle("hidden",b.dataset.tab!=="files");document.querySelector("#linksTab").classList.toggle("hidden",b.dataset.tab!=="links")}));
+document.querySelector("#loginForm").addEventListener("submit",async e=>{e.preventDefault();const s=document.querySelector("#loginStatus");if(!API){s.textContent="Login is nog niet actief: de beveiligde backend moet eerst worden gekoppeld.";return}try{const r=await fetch(API+"/login",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:document.querySelector("#password").value})});if(!r.ok)throw Error("Inloggen mislukt.");login.classList.add("hidden");dashboard.classList.remove("hidden")}catch(err){s.textContent=err.message}});
+document.querySelector("#logout").addEventListener("click",async()=>{if(API)await fetch(API+"/logout",{method:"POST",credentials:"include"}).catch(()=>{});dashboard.classList.add("hidden");login.classList.remove("hidden");document.querySelector("#password").value=""});
+</script>
+</body></html>
