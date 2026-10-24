@@ -20,7 +20,7 @@ main{width:min(100%,520px);padding:30px;background:#fff;border:1px solid var(--l
 (async()=>{
   const SB_URL="https://awehrvmyfnbxrhbpuwmj.supabase.co";
   const SB_KEY="sb_publishable_wKb4SqIaiWzFj596NTW72g_mWTvLTv3";
-  const slug=decodeURIComponent(location.pathname.replace(/^\\/+|\\/+$/g,""));
+  const slug=decodeURIComponent(location.pathname.split("/").filter(Boolean).join("/"));
   const heading=document.getElementById("heading");
   const status=document.getElementById("status");
   if(!slug || slug.includes("/") || !/^[A-Za-z0-9_-]{2,80}$/.test(slug)){
