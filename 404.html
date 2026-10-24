@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Link openen · ND3D Prints</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#667085;--line:#dce1e8;--blue:#155eef}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:#f5f7fb;color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+main{width:min(100%,520px);padding:30px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px #1720330b}
+.brand{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--muted)}h1{font-size:25px;margin:12px 0}p{line-height:1.55;color:var(--muted)}#status{margin-top:18px}a{color:var(--blue)}
+</style>
+</head>
+<body><main>
+<div class="brand">ND3D Prints</div>
+<h1 id="heading">Korte link openen…</h1>
+<p id="status">We zoeken de bestemming op.</p>
+<script>
+(async()=>{
+  const SB_URL="https://awehrvmyfnbxrhbpuwmj.supabase.co";
+  const SB_KEY="sb_publishable_wKb4SqIaiWzFj596NTW72g_mWTvLTv3";
+  const slug=decodeURIComponent(location.pathname.replace(/^\\/+|\\/+$/g,""));
+  const heading=document.getElementById("heading");
+  const status=document.getElementById("status");
+  if(!slug || slug.includes("/") || !/^[A-Za-z0-9_-]{2,80}$/.test(slug)){
+    heading.textContent="Pagina niet gevonden";
+    status.textContent="Deze URL is geen geldige korte link.";
+    return;
+  }
+  try{
+    const response=await fetch(SB_URL+"/functions/v1/admin-api?resolve="+encodeURIComponent(slug),{
+      headers:{"apikey":SB_KEY}
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok || !data.target_path){
+      heading.textContent="Korte link niet gevonden";
+      status.textContent="Deze link bestaat niet of is uitgeschakeld. Controleer de URL of vraag de beheerder om hulp.";
+      return;
+    }
+    const destination="/"+data.target_path.split("/").map(encodeURIComponent).join("/");
+    heading.textContent="Bestand wordt geopend…";
+    status.textContent="Je wordt doorgestuurd naar het bestand.";
+    location.replace(destination);
+  }catch(_){
+    heading.textContent="Link tijdelijk niet beschikbaar";
+    status.textContent="De bestemming kon niet worden opgehaald. Probeer het straks opnieuw.";
+  }
+})();
+</script>
+</main></body></html>
